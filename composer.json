@@ -9,13 +9,32 @@
         "php": ">=8.3.16",
         "ext-ctype": "*",
         "ext-iconv": "*",
+        "doctrine/dbal": "^3",
+        "doctrine/doctrine-bundle": "^2.13",
+        "doctrine/doctrine-migrations-bundle": "^3.4",
+        "doctrine/orm": "^3.3",
+        "gesdinet/jwt-refresh-token-bundle": "^1.4",
+        "jms/serializer-bundle": "^5.5",
+        "lexik/jwt-authentication-bundle": "^3.1",
+        "nelmio/api-doc-bundle": "^4.37",
+        "phpdocumentor/reflection-docblock": "^5.6",
+        "phpstan/phpdoc-parser": "^2.0",
         "runtime/frankenphp-symfony": "^0.2.0",
+        "symfony/asset": "7.2.*",
         "symfony/console": "7.2.*",
         "symfony/dotenv": "7.2.*",
         "symfony/flex": "^2",
         "symfony/framework-bundle": "7.2.*",
+        "symfony/property-access": "7.2.*",
+        "symfony/property-info": "7.2.*",
         "symfony/runtime": "7.2.*",
-        "symfony/yaml": "7.2.*"
+        "symfony/security-bundle": "7.2.*",
+        "symfony/serializer": "7.2.*",
+        "symfony/twig-bundle": "7.2.*",
+        "symfony/uid": "7.2.*",
+        "symfony/yaml": "7.2.*",
+        "twig/extra-bundle": "^2.12|^3.0",
+        "twig/twig": "^2.12|^3.0"
     },
     "config": {
         "allow-plugins": {
@@ -24,7 +43,10 @@
             "symfony/runtime": true
         },
         "bump-after-update": true,
-        "sort-packages": true
+        "sort-packages": true,
+        "platform": {
+            "php": "8.3.16"
+        }
     },
     "autoload": {
         "psr-4": {
@@ -67,5 +89,9 @@
             "require": "7.2.*",
             "docker": true
         }
+    },
+    "require-dev": {
+        "doctrine/doctrine-fixtures-bundle": "^4.0",
+        "symfony/maker-bundle": "^1.62"
     }
 }
