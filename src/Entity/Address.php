@@ -40,9 +40,6 @@ class Address
     private ?string $longitude = null;
 
     #[ORM\Column]
-    private ?int $gmapId = null;
-
-    #[ORM\Column]
     private ?\DateTimeImmutable $created_at = null;
 
     public function getId(): ?Uuid
@@ -130,18 +127,6 @@ class Address
     public function setLongitude(string $longitude): static
     {
         $this->longitude = $longitude;
-
-        return $this;
-    }
-
-    public function getGmapId(): ?int
-    {
-        return $this->gmapId;
-    }
-
-    public function setGmapId(int $gmapId): static
-    {
-        $this->gmapId = $gmapId;
 
         return $this;
     }
