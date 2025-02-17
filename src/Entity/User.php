@@ -6,6 +6,7 @@ use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use JMS\Serializer\Annotation\Groups;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Uid\Uuid;
@@ -20,9 +21,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\GeneratedValue(strategy: "CUSTOM")]
     #[ORM\CustomIdGenerator(class: UuidGenerator::class)]
     #[ORM\Column(type: "uuid", unique: true)]
+    #[Groups(['getOneUser'])]
     private ?Uuid $id = null;
 
     #[ORM\Column(length: 180)]
+    #[Groups(['getOneUser'])]
     private ?string $email = null;
 
     /**
@@ -38,9 +41,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['getOneUser'])]
     private ?string $pseudo = null;
 
     #[ORM\Column]
+    #[Groups(['getOneUser'])]
     private ?\DateTimeImmutable $created_at = null;
 
     /**
@@ -59,12 +64,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var Collection<int, Gym>
      */
     #[ORM\ManyToMany(targetEntity: Gym::class, inversedBy: 'users')]
+    #[Groups(['getOneUser'])]
     private Collection $gymsFav;
 
     /**
      * @var Collection<int, Exercise>
      */
     #[ORM\ManyToMany(targetEntity: Exercise::class)]
+    #[Groups(['getOneUser'])]
     private Collection $likedExercises;
 
     public function __construct()

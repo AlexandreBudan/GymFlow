@@ -42,6 +42,8 @@ class AppFixtures extends Fixture
             }
         }
 
+        $this->loadAdminUser($manager);
+
         for ($i = 0; $i < 10; $i++) {
             $this->loadUser($manager);
         }
@@ -61,6 +63,33 @@ class AppFixtures extends Fixture
         $manager->flush();
     }
 
+    private function loadAdminUser(ObjectManager $manager)
+    {
+        $user = new User();
+        $user->setPseudo('admin');
+        $user->setEmail('admin');
+        $user->setPassword(password_hash('admin', PASSWORD_BCRYPT));
+        $user->setRoles(['ROLE_ADMIN']);
+        $user->setCreatedAt(\DateTimeImmutable::createFromMutable($this->faker->dateTimeThisYear()));
+        for ($i = 0; $i < random_int(1, 2); $i++) {
+            $gym = $this->faker->randomElement($this->gyms);
+
+            if (!in_array($gym, $user->getGymsFav()->toArray())) {
+                $user->addGymsFav($gym);
+            }
+        }
+        for ($j = 0; $j < random_int(0, 3) ; $j++) { 
+            $exercise = $this->faker->randomElement($this->exercises);
+
+            if (!in_array($exercise, $user->getLikedExercises()->toArray())) {
+                $user->addLikedExercise($exercise);
+            }
+        }
+
+        $manager->persist($user);
+        $this->users[] = $user;
+    }
+
     private function loadUser(ObjectManager $manager)
     {
         
@@ -69,6 +98,7 @@ class AppFixtures extends Fixture
         $user->setPseudo($name);
         $user->setEmail($this->faker->unique()->safeEmail());
         $user->setPassword(password_hash($name, PASSWORD_BCRYPT));
+        $user->setRoles(['ROLE_USER']);
         $user->setCreatedAt(\DateTimeImmutable::createFromMutable($this->faker->dateTimeThisYear()));
         for ($i = 0; $i < random_int(1, 2); $i++) {
             $gym = $this->faker->randomElement($this->gyms);
