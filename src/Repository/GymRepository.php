@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Gym;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @extends ServiceEntityRepository<Gym>
@@ -44,6 +45,70 @@ class GymRepository extends ServiceEntityRepository
         if ($flush) {
             $this->getEntityManager()->flush();
         }
+    }
+
+    /**
+     * Obtient les gyms en fonction des filtres.
+     *
+     * @return array
+     */
+    public function settingsManagement(
+        Request $request
+    ) {
+
+        $data = $request->query->all();
+
+        $page = 1;
+        if (isset($data['page']) && is_numeric($data['page']) && (int)$data['page'] > 1) {
+            $page = (int)$data['page'];
+        }
+
+        $limit = 10;
+        if (isset($data['limit']) && is_numeric($data['limit']) && (int)$data['limit'] >= 1) {
+            $limit = (int)$data['limit'];
+        }
+
+        $search = "";
+        if (isset($data['search'])) {
+            $search = $data['search'];
+        }
+
+        $location = "";
+        if (isset($data['location'])) {
+            $location = $data['location'];
+        }
+
+        return array($page, $limit, $location, $search);
+    }
+
+    /**
+     * Obtient tous les gyms par pagination.
+     *
+     * @param int    $page
+     * @param int    $limit
+     * @param string  $location
+     * @param string $search
+     *
+     * @return Gym[]
+     */
+    public function findAllByPagination(
+        int $page = 1,
+        int $limit = 10,
+        string $location = "",
+        string $search = ""
+    ) {
+        $qb = $this->createQueryBuilder('g')
+            ->leftJoin('g.address', 'a')
+            ->where('g.status = :status')
+            ->andWhere('g.name LIKE :name')
+            ->andWhere('a.city LIKE :location')
+            ->setParameter('name', '%' . $search . '%')
+            ->setParameter('status', 'active')
+            ->setParameter('location', '%' . $location . '%')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
+
+        return $qb->getQuery()->getResult();
     }
 
     //    /**

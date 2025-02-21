@@ -9,39 +9,58 @@ use Doctrine\ORM\Mapping as ORM;
 use JMS\Serializer\Annotation\Groups;
 use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
 use Symfony\Component\Uid\Uuid;
+use OpenApi\Attributes as OA;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ExerciseRepository::class)]
 class Exercise
 {
+    use Trait\StatisticsPropertiesTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: "CUSTOM")]
     #[ORM\CustomIdGenerator(class: UuidGenerator::class)]
     #[ORM\Column(type: "uuid", unique: true)]
-    #[Groups(['getOneUser'])]
+    #[OA\Property(type: "string", format: "uuid", example: "550e8400-e29b-41d4-a716-446655440000")]
+    #[Groups(['getOneUser', 'getOneZone', 'getOneExercise'])]
     private ?Uuid $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['getOneUser'])]
+    #[Groups(['getOneUser', 'getOneZone', 'getOneExercise'])]
+    #[Assert\NotBlank(message: "Le nom de l'exercice est obligatoire.")]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: "Le nom de l'exercice ne peut pas dépasser 255 caractères."
+    )]
     private ?string $name = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['getOneUser'])]
+    #[Groups(['getOneUser', 'getOneZone', 'getOneExercise'])]
+    #[Assert\NotBlank(message: "La description de l'exercice est obligatoire.")]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: "La description de l'exercice ne peut pas dépasser 255 caractères."
+    )]
     private ?string $description = null;
 
     #[ORM\ManyToOne(inversedBy: 'exercises')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['getOneUser', 'getOneExercise'])]
+    #[Assert\NotNull(message: "La zone est obligatoire pour l'exercice.")]
     private ?Zone $zone = null;
 
     /**
      * @var Collection<int, VideosExercise>
      */
     #[ORM\OneToMany(targetEntity: VideosExercise::class, mappedBy: 'exercise', orphanRemoval: true)]
+    #[Groups(['getOneExercise'])]
     private Collection $videosExercises;
 
     /**
      * @var Collection<int, CommentsExercise>
      */
     #[ORM\OneToMany(targetEntity: CommentsExercise::class, mappedBy: 'exercise', orphanRemoval: true)]
+    #[Groups(['getOneExercise'])]
     private Collection $commentsExercises;
 
     public function __construct()

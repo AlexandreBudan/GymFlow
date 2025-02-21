@@ -8,6 +8,7 @@ use App\Entity\Gym;
 use App\Entity\Zone;
 use App\Entity\Exercise;
 use App\Entity\CommentsExercise;
+use App\Entity\UserDetail;
 use App\Entity\VideosExercise;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
@@ -66,26 +67,30 @@ class AppFixtures extends Fixture
     private function loadAdminUser(ObjectManager $manager)
     {
         $user = new User();
-        $user->setPseudo('admin');
+        $userDetail = new UserDetail();
+        $userDetail->setPseudo('admin');
         $user->setEmail('admin');
         $user->setPassword(password_hash('admin', PASSWORD_BCRYPT));
         $user->setRoles(['ROLE_ADMIN']);
-        $user->setCreatedAt(\DateTimeImmutable::createFromMutable($this->faker->dateTimeThisYear()));
         for ($i = 0; $i < random_int(1, 2); $i++) {
             $gym = $this->faker->randomElement($this->gyms);
 
-            if (!in_array($gym, $user->getGymsFav()->toArray())) {
-                $user->addGymsFav($gym);
+            if (!in_array($gym, $userDetail->getGymsFav()->toArray())) {
+                $userDetail->addGymsFav($gym);
             }
         }
         for ($j = 0; $j < random_int(0, 3) ; $j++) { 
             $exercise = $this->faker->randomElement($this->exercises);
 
-            if (!in_array($exercise, $user->getLikedExercises()->toArray())) {
-                $user->addLikedExercise($exercise);
+            if (!in_array($exercise, $userDetail->getLikedExercises()->toArray())) {
+                $userDetail->addLikedExercise($exercise);
             }
         }
 
+        $userDetail->initializeTimestamps();
+        $user->setUserDetail($userDetail);
+
+        $manager->persist($userDetail);
         $manager->persist($user);
         $this->users[] = $user;
     }
@@ -94,27 +99,31 @@ class AppFixtures extends Fixture
     {
         
         $user = new User();
+        $userDetail = new UserDetail();
         $name = $this->faker->name();
-        $user->setPseudo($name);
+        $userDetail->setPseudo($name);
         $user->setEmail($this->faker->unique()->safeEmail());
         $user->setPassword(password_hash($name, PASSWORD_BCRYPT));
         $user->setRoles(['ROLE_USER']);
-        $user->setCreatedAt(\DateTimeImmutable::createFromMutable($this->faker->dateTimeThisYear()));
         for ($i = 0; $i < random_int(1, 2); $i++) {
             $gym = $this->faker->randomElement($this->gyms);
 
-            if (!in_array($gym, $user->getGymsFav()->toArray())) {
-                $user->addGymsFav($gym);
+            if (!in_array($gym, $userDetail->getGymsFav()->toArray())) {
+                $userDetail->addGymsFav($gym);
             }
         }
         for ($j = 0; $j < random_int(0, 3) ; $j++) { 
             $exercise = $this->faker->randomElement($this->exercises);
 
-            if (!in_array($exercise, $user->getLikedExercises()->toArray())) {
-                $user->addLikedExercise($exercise);
+            if (!in_array($exercise, $userDetail->getLikedExercises()->toArray())) {
+                $userDetail->addLikedExercise($exercise);
             }
         }
 
+        $userDetail->initializeTimestamps();
+        $user->setUserDetail($userDetail);
+
+        $manager->persist($userDetail);
         $manager->persist($user);
         $this->users[] = $user;
     }
@@ -123,7 +132,7 @@ class AppFixtures extends Fixture
     {
         $gym = new Gym();
         $gym->setName($this->faker->company());
-        $gym->setCreatedAt(\DateTimeImmutable::createFromMutable($this->faker->dateTimeThisYear()));
+        $gym->initializeTimestamps();
 
         $manager->persist($gym);
         $this->gyms[] = $gym;
@@ -137,7 +146,8 @@ class AppFixtures extends Fixture
         $address->setCountry($this->faker->country());
         $address->setLatitude($this->faker->latitude());
         $address->setLongitude($this->faker->longitude());
-        $address->setCreatedAt(\DateTimeImmutable::createFromMutable($this->faker->dateTimeThisYear()));
+
+        $address->initializeTimestamps();
 
         $manager->persist($address);
     }
@@ -147,6 +157,8 @@ class AppFixtures extends Fixture
         $zone = new Zone();
         $zone->setName($this->faker->word());
         $zone->setGym($gym);
+
+        $zone->initializeTimestamps();
 
         $manager->persist($zone);
         $this->zones[] = $zone;
@@ -158,6 +170,8 @@ class AppFixtures extends Fixture
         $exercise->setName($this->faker->word() . " Workout");
         $exercise->setDescription($this->faker->sentence(10));
         $exercise->setZone($zone);
+
+        $exercise->initializeTimestamps();
 
         $manager->persist($exercise);
         $this->exercises[] = $exercise;
@@ -171,19 +185,23 @@ class AppFixtures extends Fixture
         $video->setTitle($this->faker->sentence(3));
         $video->setUrl("https://www.youtube.com/watch?v=" . $this->faker->regexify('[A-Za-z0-9]{11}'));
         $video->setDescription($this->faker->sentence(15));
-        $video->setCreatedAt(\DateTimeImmutable::createFromMutable($this->faker->dateTimeThisYear()));
+        
+        $video->initializeTimestamps();
 
         $manager->persist($video);
     }
 
     private function loadExerciseComment(ObjectManager $manager, Exercise $exercise)
     {
+        $user = $this->faker->randomElement($this->users);
+
         $comment = new CommentsExercise();
         $comment->setExercise($exercise);
         $comment->setCreator($this->faker->randomElement($this->users));
         $comment->setComment($this->faker->paragraph(2));
-        $comment->setPublishedAt(\DateTimeImmutable::createFromMutable($this->faker->dateTimeThisYear()));
         $comment->setGrade($this->faker->numberBetween(1, 5));
+
+        $comment->initializeTimestamps();
 
         $manager->persist($comment);
         $this->comments[] = $comment;

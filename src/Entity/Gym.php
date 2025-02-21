@@ -9,37 +9,49 @@ use Doctrine\ORM\Mapping as ORM;
 use JMS\Serializer\Annotation\Groups;
 use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
 use Symfony\Component\Uid\Uuid;
+use OpenApi\Attributes as OA;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: GymRepository::class)]
 class Gym
 {
+    use Trait\StatisticsPropertiesTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: "CUSTOM")]
     #[ORM\CustomIdGenerator(class: UuidGenerator::class)]
     #[ORM\Column(type: "uuid", unique: true)]
-    #[Groups(['getOneUser'])]
+    #[OA\Property(type: "string", format: "uuid", example: "550e8400-e29b-41d4-a716-446655440000")]
+    #[Groups(['getOneUser', 'getAllGyms', 'getOneGym', 'getOneZone'])]
     private ?Uuid $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['getOneUser'])]
+    #[Groups(['getOneUser', 'getAllGyms', 'getOneGym', 'getOneZone'])]
+    #[Assert\NotBlank(message: "Le nom de la salle de sport est obligatoire.")]
+    #[Assert\Length(
+        min: 3,
+        minMessage: "Le nom de la salle de sport doit contenir au moins 3 caractères.",
+        max: 255,
+        maxMessage: "Le nom de la salle de sport ne peut pas dépasser 255 caractères."
+    )]
     private ?string $name = null;
 
-    #[ORM\Column]
-    private ?\DateTimeImmutable $created_at = null;
-
     #[ORM\OneToOne(mappedBy: 'gym', cascade: ['persist', 'remove'])]
+    #[Groups(['getAllGyms', 'getOneGym'])]
+    #[Assert\Valid]
     private ?Address $address = null;
 
     /**
      * @var Collection<int, Zone>
      */
     #[ORM\OneToMany(targetEntity: Zone::class, mappedBy: 'gym', orphanRemoval: true)]
+    #[Groups(['getOneGym'])]
     private Collection $zones;
 
     /**
-     * @var Collection<int, User>
+     * @var Collection<int, UserDetail>
      */
-    #[ORM\ManyToMany(targetEntity: User::class, mappedBy: 'gymsFav')]
+    #[ORM\ManyToMany(targetEntity: UserDetail::class, mappedBy: 'gymsFav')]
     private Collection $users;
 
     public function __construct()
@@ -61,18 +73,6 @@ class Gym
     public function setName(string $name): static
     {
         $this->name = $name;
-
-        return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->created_at;
-    }
-
-    public function setCreatedAt(\DateTimeImmutable $created_at): static
-    {
-        $this->created_at = $created_at;
 
         return $this;
     }
@@ -125,14 +125,14 @@ class Gym
     }
 
     /**
-     * @return Collection<int, User>
+     * @return Collection<int, UserDetail>
      */
     public function getUsers(): Collection
     {
         return $this->users;
     }
 
-    public function addUser(User $user): static
+    public function addUser(UserDetail $user): static
     {
         if (!$this->users->contains($user)) {
             $this->users->add($user);
@@ -142,7 +142,7 @@ class Gym
         return $this;
     }
 
-    public function removeUser(User $user): static
+    public function removeUser(UserDetail $user): static
     {
         if ($this->users->removeElement($user)) {
             $user->removeGymsFav($this);

@@ -4,16 +4,23 @@ namespace App\Entity;
 
 use App\Repository\VideosExerciseRepository;
 use Doctrine\ORM\Mapping as ORM;
+use JMS\Serializer\Annotation\Groups;
 use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
 use Symfony\Component\Uid\Uuid;
+use OpenApi\Attributes as OA;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: VideosExerciseRepository::class)]
 class VideosExercise
 {
+    use Trait\StatisticsPropertiesTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: "CUSTOM")]
     #[ORM\CustomIdGenerator(class: UuidGenerator::class)]
     #[ORM\Column(type: "uuid", unique: true)]
+    #[OA\Property(type: "string", format: "uuid", example: "550e8400-e29b-41d4-a716-446655440000")]
+    #[Groups(['getOneExercise', 'getOneVideo'])]
     private ?Uuid $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'videosExercises')]
@@ -22,19 +29,33 @@ class VideosExercise
 
     #[ORM\ManyToOne(inversedBy: 'videosExercises')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?User $creator = null;
+    #[Groups(['getOneVideo'])]
+    private ?UserDetail $creator = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Le titre est obligatoire.")]
+    #[Assert\Length(
+        min: 3,
+        max: 255,
+        minMessage: "Le titre doit contenir au moins {{ limit }} caractères.",
+        maxMessage: "Le titre ne peut pas contenir plus de {{ limit }} caractères."
+    )]
+    #[Groups(['getOneExercise', 'getOneVideo'])]
     private ?string $title = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "L'URL est obligatoire.")]
+    #[Assert\Url(message: "L'URL fournie n'est pas valide.")]
+    #[Groups(['getOneVideo'])]
     private ?string $url = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: "La description ne peut pas contenir plus de {{ limit }} caractères."
+    )]
+    #[Groups(['getOneVideo'])]
     private ?string $description = null;
-
-    #[ORM\Column]
-    private ?\DateTimeImmutable $created_at = null;
 
     public function getId(): ?Uuid
     {
@@ -53,12 +74,12 @@ class VideosExercise
         return $this;
     }
 
-    public function getCreator(): ?User
+    public function getCreator(): ?UserDetail
     {
         return $this->creator;
     }
 
-    public function setCreator(?User $creator): static
+    public function setCreator(?UserDetail $creator): static
     {
         $this->creator = $creator;
 
@@ -97,18 +118,6 @@ class VideosExercise
     public function setDescription(?string $description): static
     {
         $this->description = $description;
-
-        return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->created_at;
-    }
-
-    public function setCreatedAt(\DateTimeImmutable $created_at): static
-    {
-        $this->created_at = $created_at;
 
         return $this;
     }
