@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Exercise;
 use App\Entity\CommentsExercise;
 use App\Repository\CommentsExerciseRepository;
+use Doctrine\ORM\EntityManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,7 +19,7 @@ use Symfony\Component\Serializer\SerializerInterface as SerializerInterfaceSymfo
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
-#[Route('/api/gym/{gym}/zone/{zone}/exercise/{exercise}/comment')]
+#[Route('/api/gym/{gym}/zone/{zone}/exercise/{exercise}/comment', name: 'api_comment_')]
 #[OA\Tag(name: 'Comment')]
 #[OA\Response(
     response: 400,
@@ -31,13 +32,16 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
 final class CommentController extends AbstractController
 {
     private TagAwareCacheInterface $cache;
+    private EntityManager $em;
 
-    public function __construct(TagAwareCacheInterface $cache)
+    public function __construct(TagAwareCacheInterface $cache, EntityManager $em)
     {
+        $this->em = $em;
+        $this->em->getFilters()->enable('active_filter');
         $this->cache = $cache;
     }
 
-    #[Route('', name: 'comment.create', methods: ['POST'])]
+    #[Route('', name: 'create', methods: ['POST'])]
     #[OA\Response(
         response: 201,
         description: 'Successful created response',
@@ -77,7 +81,7 @@ final class CommentController extends AbstractController
         return new JsonResponse(null, Response::HTTP_CREATED, ["Comment" => $comment], true);
     }
 
-    #[Route('/{comment}', name: 'comment.get', methods: ['GET'])]
+    #[Route('/{comment}', name: 'get', methods: ['GET'])]
     #[OA\Response(
         response: 200,
         description: 'Successful response',
@@ -106,7 +110,7 @@ final class CommentController extends AbstractController
         return new JsonResponse($cacheRet, Response::HTTP_OK, ['accept' => 'json'], true);
     }
 
-    #[Route('/{comment}', name: 'comment.delete', methods: ['DELETE'])]
+    #[Route('/{comment}', name: 'delete', methods: ['DELETE'])]
     #[OA\Response(
         response: 204,
         description: 'Successful deleted response',

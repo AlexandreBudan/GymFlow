@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Zone;
 use App\Entity\Exercise;
 use App\Repository\ExerciseRepository;
+use Doctrine\ORM\EntityManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,7 +19,7 @@ use Symfony\Component\Serializer\SerializerInterface as SerializerInterfaceSymfo
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
-#[Route('/api/gym/{gym}/zone/{zone}/exercise')]
+#[Route('/api/gym/{gym}/zone/{zone}/exercise', name: 'api_exercise_')]
 #[OA\Tag(name: 'Exercise')]
 #[OA\Response(
     response: 400,
@@ -32,13 +33,16 @@ class ExerciseController extends AbstractController
 {
 
     private TagAwareCacheInterface $cache;
+    private EntityManager $em;
 
-    public function __construct(TagAwareCacheInterface $cache)
+    public function __construct(TagAwareCacheInterface $cache, EntityManager $em)
     {
+        $this->em = $em;
+        $this->em->getFilters()->enable('active_filter');
         $this->cache = $cache;
     }
 
-    #[Route('', name: 'exercise.create', methods: ['POST'])]
+    #[Route('', name: 'create', methods: ['POST'])]
     #[OA\Response(
         response: 201,
         description: 'Successful created response',
@@ -78,7 +82,7 @@ class ExerciseController extends AbstractController
         return new JsonResponse(null, Response::HTTP_CREATED, ["Exercise" => $exercise], true);
     }
 
-    #[Route('/{exercise}', name: 'exercise.get', methods: ['GET'])]
+    #[Route('/{exercise}', name: 'get', methods: ['GET'])]
     #[OA\Response(
         response: 200,
         description: 'Successful response',
@@ -107,7 +111,7 @@ class ExerciseController extends AbstractController
         return new JsonResponse($cacheRet, Response::HTTP_OK, ['accept' => 'json'], true);
     }
 
-    #[Route('/{exercise}', name: 'exercise.update', methods: ['PATCH'])]
+    #[Route('/{exercise}', name: 'update', methods: ['PATCH'])]
     #[OA\Response(
         response: 201,
         description: 'Successful created response',
@@ -145,7 +149,7 @@ class ExerciseController extends AbstractController
         return new JsonResponse(null, Response::HTTP_OK, ['accept' => 'json'], true);
     }
 
-    #[Route('/{exercise}', name: 'exercise.delete', methods: ['DELETE'])]
+    #[Route('/{exercise}', name: 'delete', methods: ['DELETE'])]
     #[OA\Response(
         response: 204,
         description: 'Successful deleted response',

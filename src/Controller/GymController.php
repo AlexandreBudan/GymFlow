@@ -6,6 +6,7 @@ use App\Entity\Address;
 use App\Entity\Gym;
 use App\Repository\AddressRepository;
 use App\Repository\GymRepository;
+use Doctrine\ORM\EntityManager;
 use JMS\Serializer\SerializationContext;
 use JMS\Serializer\SerializerInterface;
 use Nelmio\ApiDocBundle\Attribute\Model;
@@ -19,7 +20,7 @@ use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use Symfony\Component\Serializer\SerializerInterface as SerializerInterfaceSymfo;
 
-#[Route('/api/gym')]
+#[Route('/api/gym', name: 'api_gym_')]
 #[OA\Tag(name: 'Gym')]
 #[OA\Response(
     response: 400,
@@ -33,13 +34,16 @@ final class GymController extends AbstractController
 {
 
     private TagAwareCacheInterface $cache;
+    private EntityManager $em;
 
-    public function __construct(TagAwareCacheInterface $cache)
+    public function __construct(TagAwareCacheInterface $cache, EntityManager $em)
     {
+        $this->em = $em;
+        $this->em->getFilters()->enable('active_filter');
         $this->cache = $cache;
     }
 
-    #[Route('', name: 'gym.create', methods: ['POST'])]
+    #[Route('', name: 'create', methods: ['POST'])]
     #[OA\Response(
         response: 201,
         description: 'Successful created response',
@@ -88,7 +92,7 @@ final class GymController extends AbstractController
         return new JsonResponse(null, Response::HTTP_CREATED, ["Gym" => $gym], true);
     }
 
-    #[Route('s', name: 'gym.getAll', methods: ['GET'])]
+    #[Route('s', name: 'get_all', methods: ['GET'])]
     #[OA\Response(
         response: 200,
         description: 'Successful response',
@@ -156,7 +160,7 @@ final class GymController extends AbstractController
         return new JsonResponse($cacheRet, Response::HTTP_OK, ['accept' => 'json'], true);
     }
 
-    #[Route('/{gym}', name: 'gym.get', methods: ['GET'])]
+    #[Route('/{gym}', name: 'get', methods: ['GET'])]
     #[OA\Response(
         response: 200,
         description: 'Successful response',
@@ -171,21 +175,25 @@ final class GymController extends AbstractController
      */
     public function getGymInfos(Gym $gym, SerializerInterface $serializer): JsonResponse
     {
+        if ($gym->getStatus() !== 'active') {
+            return new JsonResponse(null, Response::HTTP_NOT_FOUND, ['accept' => 'json'], false);
+        }
+
         $idCache = "getGymInfos_" . $gym->getId();
         $cacheRet = $this->cache->get($idCache, function (ItemInterface $item) use ($gym, $serializer) {
             $item->tag('gym_' . $gym->getId());
 
             return $serializer->serialize(
-                $gym,
-                'json',
-                SerializationContext::create()->setGroups(['getOneGym'])
+            $gym,
+            'json',
+            SerializationContext::create()->setGroups(['getOneGym'])
             );
         });
 
         return new JsonResponse($cacheRet, Response::HTTP_OK, ['accept' => 'json'], true);
     }
 
-    #[Route('/{gym}', name: 'gym.update', methods: ['PATCH'])]
+    #[Route('/{gym}', name: 'update', methods: ['PATCH'])]
     #[OA\Response(
         response: 201,
         description: 'Successful created response',
@@ -231,7 +239,7 @@ final class GymController extends AbstractController
         return new JsonResponse(null, Response::HTTP_OK, ['accept' => 'json'], true);
     }
 
-    #[Route('/{gym}', name: 'gym.delete', methods: ['DELETE'])]
+    #[Route('/{gym}', name: 'delete', methods: ['DELETE'])]
     #[OA\Response(
         response: 204,
         description: 'Successful deleted response',

@@ -6,6 +6,7 @@ use App\Entity\User;
 use App\Entity\UserDetail;
 use App\Repository\UserDetailRepository;
 use App\Repository\UserRepository;
+use Doctrine\ORM\EntityManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -22,7 +23,7 @@ use Symfony\Component\Serializer\SerializerInterface as SerializerInterfaceSymfo
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
-#[Route('/api/user')]
+#[Route('/api/user', name: 'api_user_')]
 #[OA\Tag(name: 'User')]
 #[OA\Response(
     response: 400,
@@ -36,13 +37,16 @@ class UserController extends AbstractController
 {
 
     private TagAwareCacheInterface $cache;
+    private EntityManager $em;
 
-    public function __construct(TagAwareCacheInterface $cache)
+    public function __construct(TagAwareCacheInterface $cache, EntityManager $em)
     {
+        $this->em = $em;
+        $this->em->getFilters()->enable('active_filter');
         $this->cache = $cache;
     }
 
-    #[Route('', name: 'user.create', methods: ["POST"])]
+    #[Route('', name: 'create', methods: ["POST"])]
     #[OA\Response(
         response: 201,
         description: 'Successful created response',
@@ -91,7 +95,7 @@ class UserController extends AbstractController
         return new JsonResponse(null, Response::HTTP_CREATED, ["User" => $user], true);
     }
 
-    #[Route('', name: 'user.get', methods: ['GET'])]
+    #[Route('', name: 'get', methods: ['GET'])]
     #[IsGranted("IS_AUTHENTICATED_FULLY")]
     #[OA\Response(
         response: 200,
@@ -123,7 +127,7 @@ class UserController extends AbstractController
         return new JsonResponse($cacheRet, Response::HTTP_OK, ['accept' => 'json'], true);
     }
 
-    #[Route('', name: 'user.update', methods: ["PATCH"])]
+    #[Route('', name: 'update', methods: ["PATCH"])]
     #[IsGranted("IS_AUTHENTICATED_FULLY")]
     #[OA\Response(
         response: 201,
@@ -167,7 +171,7 @@ class UserController extends AbstractController
         return new JsonResponse(null, Response::HTTP_OK, ["UserDetail" => $userDetail], false);
     }
 
-    #[Route('/del', name: 'user.delete', methods: ['DELETE'])]
+    #[Route('/del', name: 'delete', methods: ['DELETE'])]
     #[IsGranted("IS_AUTHENTICATED_FULLY")]
     #[OA\Response(
         response: 204,

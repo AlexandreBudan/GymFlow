@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Exercise;
 use App\Entity\VideosExercise;
 use App\Repository\VideosExerciseRepository;
+use Doctrine\ORM\EntityManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,7 +19,7 @@ use Symfony\Component\Serializer\SerializerInterface as SerializerInterfaceSymfo
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
-#[Route('/api/gym/{gym}/zone/{zone}/exercise/{exercise}/video')]
+#[Route('/api/gym/{gym}/zone/{zone}/exercise/{exercise}/video', name: 'api_video_')]
 #[OA\Tag(name: 'Video')]
 #[OA\Response(
     response: 400,
@@ -31,13 +32,16 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
 final class VideoController extends AbstractController
 {
     private TagAwareCacheInterface $cache;
+    private EntityManager $em;
 
-    public function __construct(TagAwareCacheInterface $cache)
+    public function __construct(TagAwareCacheInterface $cache, EntityManager $em)
     {
+        $this->em = $em;
+        $this->em->getFilters()->enable('active_filter');
         $this->cache = $cache;
     }
 
-    #[Route('', name: 'video.create', methods: ['POST'])]
+    #[Route('', name: 'create', methods: ['POST'])]
     #[OA\Response(
         response: 201,
         description: 'Successful created response',
@@ -78,7 +82,7 @@ final class VideoController extends AbstractController
         return new JsonResponse(null, Response::HTTP_CREATED, ["Video" => $video], true);
     }
 
-    #[Route('/{video}', name: 'video.get', methods: ['GET'])]
+    #[Route('/{video}', name: 'get', methods: ['GET'])]
     #[OA\Response(
         response: 200,
         description: 'Successful response',
@@ -107,7 +111,7 @@ final class VideoController extends AbstractController
         return new JsonResponse($cacheRet, Response::HTTP_OK, ['accept' => 'json'], true);
     }
 
-    #[Route('/{video}', name: 'video.delete', methods: ['DELETE'])]
+    #[Route('/{video}', name: 'delete', methods: ['DELETE'])]
     #[OA\Response(
         response: 204,
         description: 'Successful deleted response',

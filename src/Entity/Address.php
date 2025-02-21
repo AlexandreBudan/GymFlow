@@ -3,7 +3,6 @@
 namespace App\Entity;
 
 use App\Repository\AddressRepository;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use JMS\Serializer\Annotation\Groups;
 use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
@@ -21,7 +20,7 @@ class Address
     #[ORM\CustomIdGenerator(class: UuidGenerator::class)]
     #[ORM\Column(type: "uuid", unique: true)]
     #[OA\Property(type: "string", format: "uuid", example: "550e8400-e29b-41d4-a716-446655440000")]
-    #[Groups(['getAllGyms'])]
+    #[Groups(['getAllGyms', 'getOneGym'])]
     private ?Uuid $id = null;
 
     #[ORM\OneToOne(inversedBy: 'address', cascade: ['persist', 'remove'])]
@@ -32,22 +31,24 @@ class Address
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: "L'adresse est obligatoire.")]
     #[Assert\Length(max: 255, maxMessage: "L'adresse ne peut pas dépasser 255 caractères.")]
+    #[Groups(['getOneGym'])]
     private ?string $address = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: "Le code postal est obligatoire.")]
     #[Assert\Length(max: 5, maxMessage: "Le code postal ne peut pas dépasser 5 caractères.")]
     #[Assert\Regex(pattern: "/^\d{5}$|^2[AB]\d{3}$/", message: "Le code postal doit être valide.")]
+    #[Groups(['getOneGym'])]
     private ?string $postalCode = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['getAllGyms'])]
     #[Assert\NotBlank(message: "La ville est obligatoire.")]
     #[Assert\Length(max: 255, maxMessage: "La ville ne peut pas dépasser 255 caractères.")]
+    #[Groups(['getOneGym', 'getAllGyms'])]
     private ?string $city = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['getAllGyms'])]
+    #[Groups(['getAllGyms', 'getOneGym'])]
     #[Assert\NotBlank(message: "Le pays est obligatoire.")]
     #[Assert\Length(max: 255, maxMessage: "Le pays ne peut pas dépasser 255 caractères.")]
     private ?string $country = null;
@@ -55,11 +56,13 @@ class Address
     #[Assert\NotBlank(message: "La latitude est obligatoire.")]
     #[Assert\Type(type: "numeric", message: "La latitude doit être un nombre.")]
     #[Assert\Range(min: -90, max: 90, notInRangeMessage: "La latitude doit être comprise entre -90 et 90.")]
+    #[Groups(['getOneGym'])]
     private ?float $latitude = null;
 
     #[Assert\NotBlank(message: "La longitude est obligatoire.")]
     #[Assert\Type(type: "numeric", message: "La longitude doit être un nombre.")]
     #[Assert\Range(min: -180, max: 180, notInRangeMessage: "La longitude doit être comprise entre -180 et 180.")]
+    #[Groups(['getOneGym'])]
     private ?float $longitude = null;
 
     public function getId(): ?Uuid

@@ -28,7 +28,7 @@ class AppFixtures extends Fixture
     {
         $this->faker = Factory::create('fr_FR');
 
-        for ($i = 0; $i < 5; $i++) {
+        for ($i = 0; $i < 25; $i++) {
             $this->loadGym($manager);
         }
 
@@ -39,14 +39,14 @@ class AppFixtures extends Fixture
         }
 
         foreach ($this->zones as $zone) {
-            for ($k = 0; $k < 3; $k++) {
+            for ($k = 0; $k < 4; $k++) {
                 $this->loadExercise($manager, $zone);
             }
         }
 
         $this->loadAdminUser($manager);
 
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 50; $i++) {
             $this->loadUser($manager);
         }
 

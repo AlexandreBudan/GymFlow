@@ -21,7 +21,7 @@ class ExceptionSubscriber implements EventSubscriberInterface
         } else {
             $data = [
                 'status' => 500,
-                'message' => 'Something went wrong.',
+                'message' => $exception->getMessage(),
             ];
         }
 
