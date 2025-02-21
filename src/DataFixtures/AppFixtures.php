@@ -18,6 +18,7 @@ class AppFixtures extends Fixture
 {
     private $faker;
     private $users = [];
+    private $usersDetail = [];
     private $gyms = [];
     private $zones = [];
     private $exercises = [];
@@ -93,6 +94,7 @@ class AppFixtures extends Fixture
         $manager->persist($userDetail);
         $manager->persist($user);
         $this->users[] = $user;
+        $this->usersDetail[] = $userDetail;
     }
 
     private function loadUser(ObjectManager $manager)
@@ -126,6 +128,7 @@ class AppFixtures extends Fixture
         $manager->persist($userDetail);
         $manager->persist($user);
         $this->users[] = $user;
+        $this->usersDetail[] = $userDetail;
     }
 
     private function loadGym(ObjectManager $manager)
@@ -181,7 +184,7 @@ class AppFixtures extends Fixture
     {
         $video = new VideosExercise();
         $video->setExercise($exercise);
-        $video->setCreator($this->faker->randomElement($this->users));
+        $video->setCreator($this->faker->randomElement($this->usersDetail));
         $video->setTitle($this->faker->sentence(3));
         $video->setUrl("https://www.youtube.com/watch?v=" . $this->faker->regexify('[A-Za-z0-9]{11}'));
         $video->setDescription($this->faker->sentence(15));
@@ -193,11 +196,9 @@ class AppFixtures extends Fixture
 
     private function loadExerciseComment(ObjectManager $manager, Exercise $exercise)
     {
-        $user = $this->faker->randomElement($this->users);
-
         $comment = new CommentsExercise();
         $comment->setExercise($exercise);
-        $comment->setCreator($this->faker->randomElement($this->users));
+        $comment->setCreator($this->faker->randomElement($this->usersDetail));
         $comment->setComment($this->faker->paragraph(2));
         $comment->setGrade($this->faker->numberBetween(1, 5));
 

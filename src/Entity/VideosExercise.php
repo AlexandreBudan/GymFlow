@@ -45,7 +45,7 @@ class VideosExercise
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: "L'URL est obligatoire.")]
-    #[Assert\Url(message: "L'URL fournie n'est pas valide.")]
+    #[Assert\Url( message: "L'URL fournie n'est pas valide.", requireTld: false)]
     #[Groups(['getOneVideo'])]
     private ?string $url = null;
 

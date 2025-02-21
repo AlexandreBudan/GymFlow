@@ -36,8 +36,8 @@ class Address
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: "Le code postal est obligatoire.")]
-    #[Assert\Length(max: 20, maxMessage: "Le code postal ne peut pas dépasser 20 caractères.")]
-    #[Assert\Regex(pattern: "/^\d{2,5}(-\d{3,4})?$/", message: "Le code postal doit être valide.")]
+    #[Assert\Length(max: 5, maxMessage: "Le code postal ne peut pas dépasser 5 caractères.")]
+    #[Assert\Regex(pattern: "/^\d{5}$|^2[AB]\d{3}$/", message: "Le code postal doit être valide.")]
     private ?string $postalCode = null;
 
     #[ORM\Column(length: 255)]
@@ -52,17 +52,15 @@ class Address
     #[Assert\Length(max: 255, maxMessage: "Le pays ne peut pas dépasser 255 caractères.")]
     private ?string $country = null;
 
-    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 7)]
     #[Assert\NotBlank(message: "La latitude est obligatoire.")]
     #[Assert\Type(type: "numeric", message: "La latitude doit être un nombre.")]
     #[Assert\Range(min: -90, max: 90, notInRangeMessage: "La latitude doit être comprise entre -90 et 90.")]
-    private ?string $latitude = null;
+    private ?float $latitude = null;
 
-    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 7)]
     #[Assert\NotBlank(message: "La longitude est obligatoire.")]
     #[Assert\Type(type: "numeric", message: "La longitude doit être un nombre.")]
     #[Assert\Range(min: -180, max: 180, notInRangeMessage: "La longitude doit être comprise entre -180 et 180.")]
-    private ?string $longitude = null;
+    private ?float $longitude = null;
 
     public function getId(): ?Uuid
     {
@@ -100,7 +98,7 @@ class Address
 
     public function setPostalCode(string $postalCode): static
     {
-        $this->postalCode = $postalCode;
+        $this->postalCode = (string) $postalCode;
 
         return $this;
     }
@@ -129,24 +127,24 @@ class Address
         return $this;
     }
 
-    public function getLatitude(): ?string
+    public function getLatitude(): ?float
     {
         return $this->latitude;
     }
 
-    public function setLatitude(string $latitude): static
+    public function setLatitude(float $latitude): static
     {
         $this->latitude = $latitude;
 
         return $this;
     }
 
-    public function getLongitude(): ?string
+    public function getLongitude(): ?float
     {
         return $this->longitude;
     }
 
-    public function setLongitude(string $longitude): static
+    public function setLongitude(float $longitude): static
     {
         $this->longitude = $longitude;
 
