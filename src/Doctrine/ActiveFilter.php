@@ -9,12 +9,13 @@ class ActiveFilter extends SQLFilter
 {
     public function addFilterConstraint(ClassMetadata $targetEntity, $targetTableAlias): string
     {
-        // On vérifie si l'entité a un champ 'status'
+        // Vérifie si l'entité a un champ 'status'
         if ($targetEntity->hasField('status')) {
-            return sprintf('%s.status = "active"', $targetTableAlias);
+            return sprintf("%s.status = 'active'", $targetTableAlias);
         }
 
         // Si l'entité n'a pas de champ 'status', on ne modifie pas la requête
         return '';
     }
 }
+

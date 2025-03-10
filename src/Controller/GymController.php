@@ -6,19 +6,17 @@ use App\Entity\Address;
 use App\Entity\Gym;
 use App\Repository\AddressRepository;
 use App\Repository\GymRepository;
-use Doctrine\ORM\EntityManager;
-use JMS\Serializer\SerializationContext;
-use JMS\Serializer\SerializerInterface;
-use Nelmio\ApiDocBundle\Attribute\Model;
+use Doctrine\ORM\EntityManagerInterface;
+use Nelmio\ApiDocBundle\Annotation\Model;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
-use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use OpenApi\Attributes as OA;
+use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
-use Symfony\Component\Serializer\SerializerInterface as SerializerInterfaceSymfo;
 
 #[Route('/api/gym', name: 'api_gym_')]
 #[OA\Tag(name: 'Gym')]
@@ -32,11 +30,10 @@ use Symfony\Component\Serializer\SerializerInterface as SerializerInterfaceSymfo
 )]
 final class GymController extends AbstractController
 {
-
     private TagAwareCacheInterface $cache;
-    private EntityManager $em;
+    private EntityManagerInterface $em;
 
-    public function __construct(TagAwareCacheInterface $cache, EntityManager $em)
+    public function __construct(TagAwareCacheInterface $cache, EntityManagerInterface $em)
     {
         $this->em = $em;
         $this->em->getFilters()->enable('active_filter');
@@ -72,7 +69,7 @@ final class GymController extends AbstractController
      * @param AddressRepository $addressRepository
      * @return JsonResponse|null
      */
-    public function createGym(Request $request, GymRepository $gymRepository, SerializerInterfaceSymfo $serializerInterface, AddressRepository $addressRepository): JsonResponse
+    public function createGym(Request $request, GymRepository $gymRepository, SerializerInterface $serializerInterface, AddressRepository $addressRepository): JsonResponse
     {
         $address = $serializerInterface->deserialize(
             json_decode($request->getContent(), true)['address'],
@@ -153,7 +150,7 @@ final class GymController extends AbstractController
             return $serializer->serialize(
                 $gymRepository->findAllByPagination($page, $limit, $location, $search),
                 'json',
-                SerializationContext::create()->setGroups(['getAllGyms'])
+                ['groups' => ['getAllGyms']]
             );
         });
 
@@ -184,9 +181,9 @@ final class GymController extends AbstractController
             $item->tag('gym_' . $gym->getId());
 
             return $serializer->serialize(
-            $gym,
-            'json',
-            SerializationContext::create()->setGroups(['getOneGym'])
+                $gym,
+                'json',
+                ['groups' => ['getOneGym']]
             );
         });
 
@@ -221,7 +218,7 @@ final class GymController extends AbstractController
      * @param GymRepository $gymRepository
      * @return JsonResponse|null
      */
-    public function updateGym(Gym $gym, Request $request, GymRepository $gymRepository, SerializerInterfaceSymfo $serializerInterface, AddressRepository $addressRepository): JsonResponse
+    public function updateGym(Gym $gym, Request $request, GymRepository $gymRepository, SerializerInterface $serializerInterface, AddressRepository $addressRepository): JsonResponse
     {
         $address = $serializerInterface->deserialize(
             $request->getContent(), 

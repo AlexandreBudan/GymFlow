@@ -6,20 +6,19 @@ use App\Entity\User;
 use App\Entity\UserDetail;
 use App\Repository\UserDetailRepository;
 use App\Repository\UserRepository;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use JMS\Serializer\SerializerInterface;
-use JMS\Serializer\SerializationContext;
+use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Serializer\SerializationContext;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use OpenApi\Attributes as OA;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Component\Serializer\SerializerInterface as SerializerInterfaceSymfo;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
@@ -37,9 +36,9 @@ class UserController extends AbstractController
 {
 
     private TagAwareCacheInterface $cache;
-    private EntityManager $em;
+    private EntityManagerInterface $em;
 
-    public function __construct(TagAwareCacheInterface $cache, EntityManager $em)
+    public function __construct(TagAwareCacheInterface $cache, EntityManagerInterface $em)
     {
         $this->em = $em;
         $this->em->getFilters()->enable('active_filter');
@@ -67,15 +66,15 @@ class UserController extends AbstractController
      *
      * @param Request $request
      * @param UserRepository $userRepository
-     * @param SerializerInterfaceSymfo $serializerInterface
+     * @param SerializerInterface $serializer
      * @param UserPasswordHasherInterface $passwordHasher
      * @return JsonResponse|null
      */
-    public function createUser(Request $request, UserRepository $userRepository, UserDetailRepository $userDetailRepository, SerializerInterfaceSymfo $serializerInterface, UserPasswordHasherInterface $passwordHasher): ?JsonResponse
+    public function createUser(Request $request, UserRepository $userRepository, UserDetailRepository $userDetailRepository, SerializerInterface $serializer, UserPasswordHasherInterface $passwordHasher): ?JsonResponse
     {
 
         $userRepository->checkFormCreateUser($request->getContent());
-        $user = $serializerInterface->deserialize(
+        $user = $serializer->deserialize(
             $request->getContent(),
             User::class,
             'json'
@@ -120,7 +119,7 @@ class UserController extends AbstractController
             return $serializer->serialize(
                 $userRepository->getUserConnected($this->getUser()),
                 'json',
-                SerializationContext::create()->setGroups(['getOneUser'])
+                ['groups' => ['getOneUser']]
             );
         });
 
@@ -148,10 +147,10 @@ class UserController extends AbstractController
      * @param Request $request
      * @param UserRepository $userRepository
      * @param UserDetailRepository $userDetailRepository
-     * @param SerializerInterfaceSymfo $serializerInterface
+     * @param SerializerInterface $serializer
      * @return JsonResponse|null
      */
-    public function updateUser(Request $request, UserRepository $userRepository, UserDetailRepository $userDetailRepository, SerializerInterfaceSymfo $serializerInterface): ?JsonResponse
+    public function updateUser(Request $request, UserRepository $userRepository, UserDetailRepository $userDetailRepository, SerializerInterface $serializer): ?JsonResponse
     {
         if (array_key_exists('password', json_decode($request->getContent(), true))) {
             throw new BadRequestException("Can't update password or email in this route. Use /api/user/passwordEdit for this");
@@ -159,7 +158,7 @@ class UserController extends AbstractController
 
         $idUserCaller = $userRepository->getUserConnected($this->getUser())->getId();
 
-        $userDetail = $serializerInterface->deserialize(
+        $userDetail = $serializer->deserialize(
             $request->getContent(),
             UserDetail::class,
             'json',

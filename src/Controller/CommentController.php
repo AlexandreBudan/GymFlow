@@ -5,21 +5,19 @@ namespace App\Controller;
 use App\Entity\Exercise;
 use App\Entity\CommentsExercise;
 use App\Repository\CommentsExerciseRepository;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
+use Nelmio\ApiDocBundle\Annotation\Model;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use JMS\Serializer\SerializerInterface;
-use JMS\Serializer\SerializationContext;
-use Nelmio\ApiDocBundle\Annotation\Model;
 use OpenApi\Attributes as OA;
 use Symfony\Component\Serializer\SerializerInterface as SerializerInterfaceSymfo;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
-#[Route('/api/gym/{gym}/zone/{zone}/exercise/{exercise}/comment', name: 'api_comment_')]
+#[Route('/api/comment', name: 'api_comment_')]
 #[OA\Tag(name: 'Comment')]
 #[OA\Response(
     response: 400,
@@ -32,9 +30,9 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
 final class CommentController extends AbstractController
 {
     private TagAwareCacheInterface $cache;
-    private EntityManager $em;
+    private EntityManagerInterface $em;
 
-    public function __construct(TagAwareCacheInterface $cache, EntityManager $em)
+    public function __construct(TagAwareCacheInterface $cache, EntityManagerInterface $em)
     {
         $this->em = $em;
         $this->em->getFilters()->enable('active_filter');
@@ -91,10 +89,10 @@ final class CommentController extends AbstractController
      * Get One Comment of a Exercise in detail
      *
      * @param Comment $comment
-     * @param SerializerInterface $serializer
+     * @param SerializerInterfaceSymfo $serializer
      * @return JsonResponse|null
      */
-    public function getCommentInfos(CommentsExercise $comment, SerializerInterface $serializer): JsonResponse
+    public function getCommentInfos(CommentsExercise $comment, SerializerInterfaceSymfo $serializer): JsonResponse
     {
         $idCache = "getCommentInfos" . $comment->getId();
         $cacheRet = $this->cache->get($idCache, function (ItemInterface $item) use ($comment, $serializer) {
@@ -103,7 +101,7 @@ final class CommentController extends AbstractController
             return $serializer->serialize(
                 $comment,
                 'json',
-                SerializationContext::create()->setGroups(['getOneComment'])
+                ['groups' => ['getOneComment']]
             );
         });
 

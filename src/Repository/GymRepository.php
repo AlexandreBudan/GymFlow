@@ -99,11 +99,9 @@ class GymRepository extends ServiceEntityRepository
     ) {
         $qb = $this->createQueryBuilder('g')
             ->leftJoin('g.address', 'a')
-            ->where('g.status = :status')
             ->andWhere('g.name LIKE :name')
             ->andWhere('a.city LIKE :location')
             ->setParameter('name', '%' . $search . '%')
-            ->setParameter('status', 'active')
             ->setParameter('location', '%' . $location . '%')
             ->setFirstResult(($page - 1) * $limit)
             ->setMaxResults($limit);

@@ -5,21 +5,19 @@ namespace App\Controller;
 use App\Entity\Gym;
 use App\Entity\Zone;
 use App\Repository\ZoneRepository;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
+use Nelmio\ApiDocBundle\Annotation\Model;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use JMS\Serializer\SerializerInterface;
-use JMS\Serializer\SerializationContext;
-use Nelmio\ApiDocBundle\Annotation\Model;
-use OpenApi\Attributes as OA;
-use Symfony\Component\Serializer\SerializerInterface as SerializerInterfaceSymfo;
+use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use OpenApi\Attributes as OA;
 
-#[Route('/api/gym/{gym}/zone', name: 'api_zone_')]
+#[Route('/api/zone', name: 'api_zone_')]
 #[OA\Tag(name: 'Zone')]
 #[OA\Response(
     response: 400,
@@ -33,9 +31,9 @@ class ZoneController extends AbstractController
 {
 
     private TagAwareCacheInterface $cache;
-    private EntityManager $em;
+    private EntityManagerInterface $em;
 
-    public function __construct(TagAwareCacheInterface $cache, EntityManager $em)
+    public function __construct(TagAwareCacheInterface $cache, EntityManagerInterface $em)
     {
         $this->em = $em;
         $this->em->getFilters()->enable('active_filter');
@@ -62,12 +60,12 @@ class ZoneController extends AbstractController
      * @param Gym $gym
      * @param Request $request
      * @param ZoneRepository $zoneRepository
-     * @param SerializerInterfaceSymfo $serializerInterface
+     * @param SerializerInterface $serializer
      * @return JsonResponse|null
      */
-    public function createZone(Gym $gym, Request $request, ZoneRepository $zoneRepository, SerializerInterfaceSymfo $serializerInterface): JsonResponse
+    public function createZone(Gym $gym, Request $request, ZoneRepository $zoneRepository, SerializerInterface $serializer): JsonResponse
     {
-        $zone = $serializerInterface->deserialize(
+        $zone = $serializer->deserialize(
             $request->getContent(),
             Zone::class, 
             'json'
@@ -104,7 +102,7 @@ class ZoneController extends AbstractController
             return $serializer->serialize(
                 $zone,
                 'json',
-                SerializationContext::create()->setGroups(['getOneZone'])
+                ['groups' => ['getOneZone']]
             );
         });
 

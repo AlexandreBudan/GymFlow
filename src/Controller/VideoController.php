@@ -5,21 +5,19 @@ namespace App\Controller;
 use App\Entity\Exercise;
 use App\Entity\VideosExercise;
 use App\Repository\VideosExerciseRepository;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
+use Nelmio\ApiDocBundle\Annotation\Model;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use JMS\Serializer\SerializerInterface;
-use JMS\Serializer\SerializationContext;
-use Nelmio\ApiDocBundle\Annotation\Model;
-use OpenApi\Attributes as OA;
-use Symfony\Component\Serializer\SerializerInterface as SerializerInterfaceSymfo;
+use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use OpenApi\Attributes as OA;
 
-#[Route('/api/gym/{gym}/zone/{zone}/exercise/{exercise}/video', name: 'api_video_')]
+#[Route('/api/video', name: 'api_video_')]
 #[OA\Tag(name: 'Video')]
 #[OA\Response(
     response: 400,
@@ -32,9 +30,9 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
 final class VideoController extends AbstractController
 {
     private TagAwareCacheInterface $cache;
-    private EntityManager $em;
+    private EntityManagerInterface $em;
 
-    public function __construct(TagAwareCacheInterface $cache, EntityManager $em)
+    public function __construct(TagAwareCacheInterface $cache, EntityManagerInterface $em)
     {
         $this->em = $em;
         $this->em->getFilters()->enable('active_filter');
@@ -62,13 +60,13 @@ final class VideoController extends AbstractController
      *
      * @param Exercise $exercise
      * @param Request $request
-     * @param VideoExerciseRepository $videoExerciseRepository
-     * @param SerializerInterfaceSymfo $serializerInterface
+     * @param VideosExerciseRepository $videoExerciseRepository
+     * @param SerializerInterface $serializer
      * @return JsonResponse|null
      */
-    public function createVideo(Exercise $exercise, Request $request, VideosExerciseRepository $videoExerciseRepository, SerializerInterfaceSymfo $serializerInterface): JsonResponse
+    public function createVideo(Exercise $exercise, Request $request, VideosExerciseRepository $videoExerciseRepository, SerializerInterface $serializer): JsonResponse
     {
-        $video = $serializerInterface->deserialize(
+        $video = $serializer->deserialize(
             $request->getContent(),
             VideosExercise::class, 
             'json'
@@ -91,7 +89,7 @@ final class VideoController extends AbstractController
     /**
      * Get One Video of a Exercise in detail
      *
-     * @param Video $exercise
+     * @param VideosExercise $video
      * @param SerializerInterface $serializer
      * @return JsonResponse|null
      */
@@ -104,7 +102,7 @@ final class VideoController extends AbstractController
             return $serializer->serialize(
                 $video,
                 'json',
-                SerializationContext::create()->setGroups(['getOneVideo'])
+                ['groups' => ['getOneVideo']]
             );
         });
 
@@ -120,11 +118,11 @@ final class VideoController extends AbstractController
     /**
      * Delete Video
      *
-     * @param Video $video
-     * @param VideoExerciseRepository $videoExerciseRepository
+     * @param VideosExercise $video
+     * @param VideosExerciseRepository $videoExerciseRepository
      * @return JsonResponse|null
      */
-    public function deleterVideo(VideosExercise $video, VideosExerciseRepository $videoExerciseRepository): JsonResponse
+    public function deleteVideo(VideosExercise $video, VideosExerciseRepository $videoExerciseRepository): JsonResponse
     {
         $video->setStatus("inactive");
         $video->updateTimestamp();

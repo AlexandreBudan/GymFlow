@@ -6,7 +6,7 @@ use App\Repository\UserDetailRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use JMS\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
 use OpenApi\Attributes as OA;
@@ -50,7 +50,7 @@ class UserDetail
     #[ORM\ManyToMany(targetEntity: Gym::class, inversedBy: 'users')]
     #[Groups(['getOneUser'])]
     private Collection $gymsFav;
-
+    
     #[ORM\ManyToMany(targetEntity: Exercise::class)]
     #[Groups(['getOneUser'])]
     private Collection $likedExercises;
