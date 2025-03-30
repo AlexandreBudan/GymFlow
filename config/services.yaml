@@ -19,6 +19,15 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
+    
+    App\Services\GenericEntityValueResolver:
+        tags: ['controller.argument_value_resolver']
+
+    App\Serializer\Normalizer\AutoDiscoveryNormalizer:
+        tags: ['serializer.normalizer']
+
+    App\Doctrine\ActiveFilter:
+        tags: ['doctrine.orm.entity_manager_configuration']
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
